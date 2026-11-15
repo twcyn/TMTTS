@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>英文演講稿 TTS 工具 (GitHub 雲端版)</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 20px;
+      font-family: "Microsoft JhengHei UI", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      display: flex;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 680px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    button, a.btn {
+      font-family: inherit;
+      font-size: 14px;
+      padding: 8px 16px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+    }
+    .btn-pause {
+      background: #ffffff;
+      color: #222222;
+      border: 1px solid #222222;
+    }
+    .btn-generate {
+      background: #333333;
+      color: #ffffff;
+      border: 1px solid #333333;
+      font-weight: bold;
+    }
+    .btn-download {
+      background: #eaeaea;
+      color: #222222;
+      border: 1px solid #999999;
+      margin-left: auto;
+    }
+    textarea {
+      width: 100%;
+      height: 360px;
+      padding: 12px;
+      font-family: Consolas, monospace;
+      font-size: 16px;
+      line-height: 1.5;
+      border: 1px solid #222222;
+      background: #ffffff;
+      color: #111111;
+      resize: vertical;
+    }
+    .status {
+      font-size: 13px;
+      color: #555555;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="toolbar">
+      <button class="btn-pause" onclick="insertPause()">插入停頓 (1秒)</button>
+      <button class="btn-generate" onclick="copyAndOpenGitHub()">複製講稿並前往 GitHub 產生 MP3</button>
+      <a class="btn btn-download" href="https://github.com/twcyn/TMTTS/raw/main/output/latest_speech.mp3" download="latest_speech.mp3">下載最新 MP3</a>
+    </div>
+
+    <textarea id="editor">Good morning everyone. [PAUSE]
+
+Today, I would like to share a story about perseverance. [PAUSE] When we face challenges, the most important thing is to keep moving forward.</textarea>
+
+    <div class="status" id="status">
+      步驟：1. 編輯講稿並插入停頓 → 2. 點擊「複製講稿並前往 GitHub 產生 MP3」貼上並按下 Commit → 3. 約 30 秒後點擊「下載最新 MP3」
+    </div>
+  </div>
+
+  <script>
+    const editor = document.getElementById('editor');
+    const statusEl = document.getElementById('status');
+    const PAUSE_TAG = ' [PAUSE] ';
+
+    function insertPause() {
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      const val = editor.value;
+      editor.value = val.substring(0, start) + PAUSE_TAG + val.substring(end);
+      editor.selectionStart = editor.selectionEnd = start + PAUSE_TAG.length;
+      editor.focus();
+      statusEl.textContent = '已在游標處插入 1 秒停頓記號 [PAUSE]';
+    }
+
+    async function copyAndOpenGitHub() {
+      try {
+        await navigator.clipboard.writeText(editor.value);
+        statusEl.textContent = '已自動複製講稿！正在開啟 GitHub script.txt 編輯頁，請全選貼上 (Ctrl+V) 後點擊右上角綠色 Commit changes 按鈕。';
+      } catch (e) {
+        statusEl.textContent = '請複製文字框講稿，貼到開啟的 GitHub script.txt 頁面並點擊 Commit changes。';
+      }
+      window.open('https://github.com/twcyn/TMTTS/edit/main/script.txt', '_blank');
+    }
+  </script>
+</body>
+</html>

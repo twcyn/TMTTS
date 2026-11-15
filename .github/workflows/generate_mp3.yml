@@ -1,0 +1,65 @@
+name: Generate Speech MP3
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "script.txt"
+  workflow_dispatch:
+    inputs:
+      script_text:
+        description: "（選填）直接在此貼上講稿，或留空以讀取 script.txt"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  tts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Cache Kokoro TTS models
+        uses: actions/cache@v4
+        with:
+          path: models
+          key: kokoro-models-v1.0
+
+      - name: Install system library for soundfile
+        run: sudo apt-get update && sudo apt-get install -y libsndfile1
+
+      - name: Install Python dependencies
+        run: pip install -r requirements.txt
+
+      - name: Generate MP3 with Kokoro TTS
+        env:
+          INPUT_SCRIPT: ${{ github.event.inputs.script_text }}
+        run: python cli_generate.py
+
+      - name: Upload MP3 as Workflow Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: speech-mp3
+          path: output/latest_speech.mp3
+
+      - name: Commit and push generated MP3 to repository
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add output/latest_speech.mp3 script.txt
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Auto-generate latest_speech.mp3 from script.txt"
+            git push
+          fi
